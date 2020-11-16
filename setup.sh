@@ -36,3 +36,13 @@ else
 	done
 	create_default_user "$default_user"
 fi
+
+
+### Sudo
+read -p "Install and setup sudo for your user? [Y,n]: " setup_sudo
+if [ "$setup_sudo" != "n" ]; then
+	# Install sudo
+	pacman -S --noconfirm sudo
+	# Modify sudoers file to allow members of the wheel group
+	sed '/%wheel ALL=(ALL) ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
+fi
