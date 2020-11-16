@@ -46,3 +46,15 @@ if [ "$setup_sudo" != "n" ]; then
 	# Modify sudoers file to allow members of the wheel group
 	sed '/%wheel ALL=(ALL) ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
 fi
+
+
+### SSH
+read -p "Install and setup SSH? [Y,n]: " setup_ssh
+if [ "$setup_ssh" != "n" ]; then
+	# Install openssh
+	pacman -S --noconfirm openssh
+	# Prohibit ssh login as root
+	sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+	# Enable and start the ssh daemon
+	systemctl enable --now sshd
+fi
