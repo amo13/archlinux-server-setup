@@ -8,7 +8,7 @@
 
 
 ### Script needs to be started as root
-if [ ! $(whoami) == "root" ]; then
+if [ ! '$(whoami)' == 'root' ]; then
 	echo "Please start this script as root or with sudo."
 	exit
 fi
