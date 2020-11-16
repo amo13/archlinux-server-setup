@@ -101,6 +101,7 @@ EOF
 fi
 
 
+### fstrim
 read -p "Activate daily filesystem trim? [Y,n]: " activate_fstrim
 if [ "$activate_fstrim" != "n" ]; then
 	# Create parent folder
