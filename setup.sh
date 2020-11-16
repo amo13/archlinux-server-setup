@@ -14,6 +14,10 @@ if [ ! '$(whoami)' == 'root' ]; then
 fi
 
 
+### Update system and install packages
+pacman -Syu --noconfirm base base-devel nano sudo htop git
+
+
 ### Default unprivileged user
 create_default_user() {
 	useradd -m -G ftp,http,mail,wheel "$1"
