@@ -60,7 +60,7 @@ fi
 read -p "Install yay AUR helper? [Y,n]: " setup_yay
 if [ "$setup_yay" != "n" ]; then
 	runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git 
-	runuser -u "$default_user" -- sh -c 'cd yay && makepkg -si'
+	runuser -u "$default_user" -- sh -c 'cd yay && makepkg -rsi --noconfirm'
 fi
 
 
