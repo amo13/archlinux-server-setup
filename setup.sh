@@ -101,6 +101,17 @@ EOF
 fi
 
 
+read -p "Activate daily filesystem trim? [Y,n]: " activate_fstrim
+if [ "$activate_fstrim" != "n" ]; then
+	# Create parent folder
+	mkdir -p /etc/systemd/system/fstrim.timer.d
+	# Create a drop-in configuration file to run fstrim daily instead of weekly
+	echo "[Timer]" >> /etc/systemd/system/fstrim.timer.d/override.conf
+	echo "OnCalendar=daily" >> /etc/systemd/system/fstrim.timer.d/override.conf
+	# Enable and start the timer
+	systemctl enable --now fstrim.timer
+fi
+
 
 
 
