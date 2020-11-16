@@ -42,13 +42,25 @@ else
 fi
 
 
-### Sudo
+### Set the home folder of the default user as working directory
+cd /home/"$default_user"
+
+
+### Sudo (part 1)
 read -p "Install and setup sudo for your user? [Y,n]: " setup_sudo
 if [ "$setup_sudo" != "n" ]; then
 	# Install sudo
 	pacman -S --noconfirm sudo
 	# Modify sudoers file to allow members of the wheel group
-	sed '/%wheel ALL=(ALL) ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
+	sed '/%wheel ALL=(ALL) NOPASSWD: ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
+fi
+
+
+### yay AUR helper
+read -p "Install yay AUR helper? [Y,n]: " setup_yay
+if [ "$setup_yay" != "n" ]; then
+	runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git 
+	runuser -u "$default_user" -- sh -c 'cd yay && makepkg -si'
 fi
 
 
@@ -62,3 +74,16 @@ if [ "$setup_ssh" != "n" ]; then
 	# Enable and start the ssh daemon
 	systemctl enable --now sshd
 fi
+
+
+
+
+
+
+### Sudo (part 2)
+# Remove temporary passwordless sudo for wheel group
+sed '/%wheel ALL=(ALL) NOPASSWD: ALL/s/^/# /g' /etc/sudoers | EDITOR='tee' visudo
+# Modify sudoers file to allow members of the wheel group
+sed '/%wheel ALL=(ALL) ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
+# Restore sudo lecture for the default user
+rm /var/db/sudo/lectured/"$default_user"
