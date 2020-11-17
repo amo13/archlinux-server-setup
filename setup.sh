@@ -51,7 +51,7 @@ fi
 
 
 ### Set the home folder of the default user as working directory
-cd /home/"$default_user"
+cd /home/"$default_user" || exit
 
 
 ### Sudo (part 1)
