@@ -5,6 +5,9 @@
 ### Presumptions:
 ###		- Running on a freshly installed archlinux system
 ###		- Working internet connection (networking already set up)
+###
+### Notice:
+###		- Change passwords only after completion of this script
 
 
 ### Script needs to be started as root
