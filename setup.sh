@@ -14,6 +14,10 @@ if [ ! "$(whoami)" == "root" ]; then
 fi
 
 
+### Define some variables
+hostname=$(uname -n | tr -d '\n')
+
+
 ### Update system and install packages
 pacman -Syu --noconfirm base base-devel nano sudo htop git
 
