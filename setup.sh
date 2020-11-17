@@ -89,7 +89,7 @@ read -p "Setup a pacman hook to clean up its cache? [Y,n]: " pacman_cleanup_hook
 if [ "$pacman_cleanup_hook" != "n" ]; then
 	read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
 	# Set to default if nothing has been entered
-	[ -z $pacman_cleanup_hook_keep ] && pacman_cleanup_hook_keep=2
+	[ -z "$pacman_cleanup_hook_keep" ] && pacman_cleanup_hook_keep=2
 	# Create the parent folder
 	mkdir -p /etc/pacman.d/hooks
 	# Write the hook (Do not indent the following lines!)
