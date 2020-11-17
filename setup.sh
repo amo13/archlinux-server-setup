@@ -122,6 +122,23 @@ if [ "$activate_fstrim" != "n" ]; then
 fi
 
 
+### Gotify
+read -p "Install and setup gotify server? [Y,n]: " gotifyserver
+if [ "$gotifyserver" != "n" ]; then
+	# Install the gotify server
+	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm gotify-server-bin'
+	# Set admin user name
+	read -p "Enter admin user name for gotify [default: $default_user]: " gotify_admin_user
+	# Set to default if nothing has been entered
+	[ -z "$gotify_admin_user" ] && gotify_admin_user="$default_user"
+	sed -i -e "s/name: admin/name: $gotify_admin_user/g" /etc/gotify/config.yml
+	# Set the listening port to 8057
+	sed -i -e "s/port: 80/port: 8057/g" /etc/gotify/config.yml
+	# Enable and start the gotify server
+	systemctl enable --now gotify-server
+fi
+
+
 
 
 ### Sudo (part 2)
