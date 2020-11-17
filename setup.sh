@@ -19,7 +19,11 @@ hostname=$(uname -n | tr -d '\n')
 
 
 ### Update system and install packages
-pacman -Syu --noconfirm base base-devel nano sudo htop git
+pacman -Syu --noconfirm base base-devel pacman-contrib reflector nano sudo htop git
+
+
+### Enable and start reflector timer
+systemctl enable --now reflector.timer
 
 
 ### Default unprivileged user
