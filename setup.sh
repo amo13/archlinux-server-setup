@@ -139,6 +139,68 @@ if [ "$gotifyserver" != "n" ]; then
 fi
 
 
+### Systemd service failure notification with gotify
+read -p "Send systemd service failure notifications to gotify? [Y,n]: " systemd_failure_notifications
+if [ "$systemd_failure_notifications" != "n" ]; then
+	# Create parent folder
+	mkdir -p /etc/systemd/system/service.d
+	# Create a systemd toplevel override for services
+	echo "[Unit]" >> /etc/systemd/system/service.d/toplevel-override.conf
+	echo "OnFailure=failure-notification@%n" >> /etc/systemd/system/service.d/toplevel-override.conf
+	# Create the unit file notifying of failed units (Do not indent the following lines!)
+	cat > /etc/systemd/system/failure-notification@.service <<EOF
+[Unit]
+Description=Send a notification about a failed systemd unit
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/$default_user/scripts/failure-notification.sh %i
+EOF
+	# Prevent regression/recursion
+	touch /etc/systemd/system/failure-notification@.service.d/toplevel-override.conf
+	# Create the script file to be called on service failures
+	# Create parent folder
+	mkdir -p /home/"$default_user"/scripts
+	# Create script
+	{
+		echo '#!/bin/bash';
+		echo;
+		echo 'UNIT=$1';
+		echo 'UNITFILE=$(systemctl cat $UNIT)';
+		echo 'UNITSTATUS=$(systemctl status $UNIT)';
+		echo;
+		echo 'gotify-cli push -t "$UNIT failed" << EOF';
+		echo 'Systemd unit $UNIT has failed.';
+		echo;
+		echo 'The current status is:';
+		echo;
+		echo '$UNITSTATUS';
+		echo;
+		echo 'The unit file is:';
+		echo;
+		echo '$UNITFILE';
+		echo 'EOF'
+	} >> /home/"$default_user"/scripts/failure-notification.sh
+	# Make it executable and owned by the default user
+	chmod +x /home/"$default_user"/scripts/failure-notification.sh
+	chown "$default_user":"$default_user" /home/"$default_user"/scripts/failure-notification.sh
+	# Install gotify-cli
+	yay -S --noconfirm gotify-cli-bin
+	# Create application on the gotify server
+	app_creation_response=$(curl -u "$gotify_admin_user":admin http://127.0.0.1:8057/application -F "name=$hostname" -F "description=Arch Linux Server")
+	# Install jq to parse the json response
+	pacman -S --noconfirm jq
+	# Extract the application token
+	gotify_app_token=$(echo "$app_creation_response" | jq -r '.token' | tr -d '\n')
+	# Configure gotify-cli
+	jq -n --arg token "$gotify_app_token" '{"token": $token,"url": "http://127.0.0.1:8057","defaultPriority": 10}' > /etc/gotify/cli.json
+	# Remove jq and its no longer required dependencies
+	pacman -Rs --noconfirm jq
+fi
+
+
+
 
 
 ### Sudo (part 2)
