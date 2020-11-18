@@ -161,6 +161,7 @@ Type=simple
 ExecStart=/home/$default_user/scripts/failure-notification.sh %i
 EOF
 	# Prevent regression/recursion
+	mkdir -p /etc/systemd/system/failure-notification@.service.d
 	touch /etc/systemd/system/failure-notification@.service.d/toplevel-override.conf
 	# Create the script file to be called on service failures
 	# Create parent folder
@@ -189,7 +190,7 @@ EOF
 	chmod +x /home/"$default_user"/scripts/failure-notification.sh
 	chown "$default_user":"$default_user" /home/"$default_user"/scripts/failure-notification.sh
 	# Install gotify-cli
-	yay -S --noconfirm gotify-cli-bin
+	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm gotify-cli-bin'
 	# Create application on the gotify server
 	app_creation_response=$(curl -u "$gotify_admin_user":admin http://127.0.0.1:8057/application -F "name=$hostname" -F "description=Arch Linux Server")
 	# Install jq to parse the json response
