@@ -39,3 +39,7 @@ If you want to change how and where the notifications are delivered, you should 
 
 ### fail2ban
 Install, activate and start fail2ban. It will monitor the ssh and nginx logs.
+
+### Smartmontools
+Install, activate and start smartmontools. It will monitor all drives and send notifications on potential problems using gotify.
+If you want to change how and where the notifications are delivered, you should modify the contents of the `/usr/share/smartmontools/smartd_warning.d/smartd-warning.sh` script accordingly. Also periodically dump the smartd logs to `/var/log/smartd` so it can be parsed by netdata if needed.
