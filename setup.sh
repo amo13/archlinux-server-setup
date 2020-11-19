@@ -9,6 +9,9 @@
 ### Notice:
 ###		- Change passwords only after completion of this script
 
+# shellcheck disable=SC2162
+# shellcheck disable=SC2012
+
 
 ### Script needs to be started as root
 if [ ! "$(whoami)" == "root" ]; then
@@ -238,6 +241,32 @@ EOF
 	systemctl enable --now fail2ban
 fi
 
+
+### Smartmontools
+read -p "Install and setup smartmontools? [Y,n]: " setup_smartmontools
+if [ "$setup_smartmontools" != "n" ]; then
+	# Install smartmontools
+	pacman -S --noconfirm smartmontools
+	# Dump smartd logs for potential parsing by netdata
+	# Create parent folder
+	mkdir -p "/var/log/smartd"
+	# Write the environment file
+	echo 'SMARTD_ARGS="-A /var/log/smartd/ -i 600"' > /etc/conf.d/smartd
+	# Notify about potential problems using gotify
+	{
+		echo '#!/bin/bash';
+		echo;
+		echo 'gotify-cli push -t "SMART warning" "$SMARTD_FULLMESSAGE"'
+	} > /usr/share/smartmontools/smartd_warning.d/smartd-warning.sh
+	# Make the notification script executable
+	chmod +x /usr/share/smartmontools/smartd_warning.d/smartd-warning.sh
+	# Comment out the default DEVICESCAN directive
+	sed -i '/DEVICESCAN$/s/^/#/g' /etc/smartd.conf
+	# Configure smartd to monitor all drives and to notify on potential problems
+	echo 'DEVICESCAN -a -I 194 -W 4,45,55 -R 1! -R 5! -R 10! -R 184! -R 187! -R 188! -R 196! -R 197! -R 198! -R 201! -n standby,q -m @smartd-warning.sh -M test' >> /etc/smartd.conf
+	# Enable and start smartd
+	systemctl enable --now smartd
+fi
 
 
 
