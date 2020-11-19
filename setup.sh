@@ -205,6 +205,39 @@ EOF
 fi
 
 
+### Fail2ban
+read -p "Install and setup fail2ban? [Y,n]: " setup_fail2ban
+if [ "$setup_fail2ban" != "n" ]; then
+	# Install fail2ban
+	pacman -S --noconfirm fail2ban
+	# Enable and start iptables and ip6tables services
+	systemctl enable --now iptables ip6tables
+	# Create the fail2ban jail configuration file
+	cat > /etc/fail2ban/jail.local <<EOF
+[DEFAULT]
+bantime  = 1h
+ignoreip = 127.0.0.1/8
+
+[sshd]
+enabled  = true
+filter   = sshd
+action   = iptables[name=SSH, port=ssh, protocol=tcp]
+backend  = systemd
+maxretry = 5
+
+[nginx-http-auth]
+enabled  = true
+filter   = nginx-http-auth
+action   = iptables-multiport[name=nginx, port="http,https"]
+port     = http,https
+logpath  = /var/log/nginx/*access.log*
+           /var/log/nginx/*error.log*
+maxretry = 5
+EOF
+	# Enable and start fail2ban
+	systemctl enable --now fail2ban
+fi
+
 
 
 
