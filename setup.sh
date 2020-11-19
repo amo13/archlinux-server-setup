@@ -43,6 +43,7 @@ if [ "$users_count" -eq 0 ]; then
 elif [ "$users_count" -eq 1 ]; then
 	default_user="$(ls -x /home | tr -d '\n')"
 	echo "Setting default unprivileged user to $default_user"
+	useradd -m -G ftp,http,mail,wheel "$default_user"
 else
 	read -p "Enter the name of your default unprivileged user: " default_user
 	while [ -z "$default_user" ] || [ ! -d /home/"$default_user" ]; do
