@@ -186,7 +186,7 @@ EOF
 		echo;
 		echo '$UNITFILE';
 		echo 'EOF'
-	} >> /home/"$default_user"/scripts/failure-notification.sh
+	} > /home/"$default_user"/scripts/failure-notification.sh
 	# Make it executable and owned by the default user
 	chmod +x /home/"$default_user"/scripts/failure-notification.sh
 	chown "$default_user":"$default_user" /home/"$default_user"/scripts/failure-notification.sh
