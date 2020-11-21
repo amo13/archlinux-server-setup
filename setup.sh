@@ -251,6 +251,48 @@ if [ "$gotifyserver" != "n" ]; then
 	sed -i -e "s/port: 80/port: 8057/g" /etc/gotify/config.yml
 	# Enable and start the gotify server
 	systemctl enable --now gotify-server
+	# Add nginx virtual host if nginx has been set up
+	if [ "$setup_nginx" != "n" ]; then
+		{
+			echo 'upstream gotify {';
+			echo '  # Set the port to the one you are using in gotify';
+			echo '  server 127.0.0.1:8057;';
+			echo '}';
+			echo;
+			echo 'server {';
+			echo '  # Here goes your domain / subdomain';
+			echo "  server_name gotify.$user_domain;";
+			echo '  listen 80;';
+			echo;
+			echo '  location / {';
+			echo '    # We set up the reverse proxy';
+			echo '    proxy_pass         http://gotify;';
+			echo '    proxy_http_version 1.1;';
+			echo;
+			echo '    # Ensuring it can use websockets';
+			echo '    proxy_set_header   Upgrade $http_upgrade;';
+			echo '    proxy_set_header   Connection "upgrade";';
+			echo '    proxy_set_header   X-Real-IP $remote_addr;';
+			echo '    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;';
+			echo '    proxy_set_header   X-Forwarded-Proto http;';
+			echo '    proxy_redirect     http:// $scheme://;';
+			echo;
+			echo '    # The proxy must preserve the host because gotify verifies the host with the origin';
+			echo '    # for WebSocket connections';
+			echo '    proxy_set_header   Host $http_host;';
+			echo;
+			echo '    # These sets the timeout so that the websocket can stay alive';
+			echo '    proxy_connect_timeout   7m;';
+			echo '    proxy_send_timeout      7m;';
+			echo '    proxy_read_timeout      7m;';
+			echo '  }';
+			echo '}';
+		} > /etc/nginx/sites-available/gotify."$user_domain"
+		# Actually activate the gotify virtual host if a domain was previously given
+		ln -s /etc/nginx/sites-available/gotify."$user_domain" /etc/nginx/sites-enabled/gotify."$user_domain"
+		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
+		systemctl reload nginx
+	fi
 fi
 
 
