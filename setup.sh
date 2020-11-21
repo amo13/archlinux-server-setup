@@ -130,6 +130,47 @@ if [ "$activate_fstrim" != "n" ]; then
 fi
 
 
+### Nginx
+read -p "Install and setup nginx? [Y,n]: " setup_nginx
+if [ "$setup_nginx" != "n" ]; then
+	# Install nginx
+	pacman -S --noconfirm nginx
+	# Set the number of worker processes to auto
+	sed -i 's/worker_processes  1;/worker_processes auto;/g' /etc/nginx/nginx.conf
+	# Delete the last line of the nginx config (should be only a "}")
+	sed '$d' /etc/nginx/nginx.conf
+	# Add "include sites-enabled/*;" to the config file
+	echo 'include sites-enabled/*;' >> /etc/nginx/nginx.conf
+	# Add the previously deleted last line "}"
+	echo '}' >> /etc/nginx/nginx.conf
+	# Create the sites-available and sites-enabled folders
+	mkdir -p /etc/nginx/sites-available
+	mkdir -p /etc/nginx/sites-enabled
+	# Ask for the domain to use
+	read -p "Enter your domain or leave empty if you do not have one: " user_domain
+	if [ -z "$user_domain" ]; then
+		user_domain="domain.tld"
+	fi
+	# Create a template virtual host config file for static content
+	cat > /etc/nginx/sites-available/template <<EOF
+server {
+
+	server_name sub.$user_domain;
+
+    listen 80;
+    listen [::]:80;
+
+    location / {
+        root /srv/sub.$user_domain;
+    }
+
+}
+EOF
+	# Enable and start nginx
+	systemctl enable --now nginx
+fi
+
+
 ### Gotify
 read -p "Install and setup gotify server? [Y,n]: " gotifyserver
 if [ "$gotifyserver" != "n" ]; then
