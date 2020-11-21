@@ -138,7 +138,7 @@ if [ "$setup_nginx" != "n" ]; then
 	# Set the number of worker processes to auto
 	sed -i 's/worker_processes  1;/worker_processes auto;/g' /etc/nginx/nginx.conf
 	# Delete the last line of the nginx config (should be only a "}")
-	sed '$d' /etc/nginx/nginx.conf
+	sed -i '$d' /etc/nginx/nginx.conf
 	# Add "include sites-enabled/*;" to the config file
 	echo 'include sites-enabled/*;' >> /etc/nginx/nginx.conf
 	# Add the previously deleted last line "}"
@@ -166,6 +166,9 @@ server {
 
 }
 EOF
+	# Fix the warning: Could not build optimal types_hash
+	sed -i -e '/http {/a\' -e '    server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
+	sed -i -e '/http {/a\' -e '    types_hash_max_size 4096;' /etc/nginx/nginx.conf
 	# Enable and start nginx
 	systemctl enable --now nginx
 fi
