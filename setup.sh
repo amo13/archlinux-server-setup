@@ -171,6 +171,72 @@ EOF
 fi
 
 
+### Redis
+read -p "Install and setup redis? [Y,n]: " setup_redis
+if [ "$setup_redis" != "n" ]; then
+	# Install redis and client-side packages
+	pacman -S --noconfirm redis php-redis python-redis
+	# Change the configuration file to enable the unix socket
+	sed -i 's/# unixsocket \/tmp\/redis.sock/unixsocket \/run\/redis\/redis.sock/g' /etc/redis.conf
+	sed -i 's/# unixsocketperm 700/unixsocketperm 770/g' /etc/redis.conf
+	# Add the default user and the http user to the redis group to allow socket access
+	gpasswd -a http,"$default_user" redis
+	# Prevent some smaller issues and warnings as per Archwiki
+	echo 'w /sys/kernel/mm/transparent_hugepage/enabled - - - - never' >> /etc/tmpfiles.d/redis.conf
+	echo 'w /sys/kernel/mm/transparent_hugepage/defrag - - - - never' >> /etc/tmpfiles.d/redis.conf
+	echo 'net.core.somaxconn=512' >> /etc/sysctl.d/99-sysctl.conf
+	echo 'vm.overcommit_memory=1' >> /etc/sysctl.d/99-sysctl.conf
+	# Enable and start redis
+	systemctl enable --now redis
+fi
+
+
+### Namecheap dynamic DNS update
+read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
+if [ "$namecheap_domain" != "domain.tld" ]; then
+	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
+	if [ "$namecheap_domain_update" != "n" ]; then
+		# Ask for the dynamic DNS password from the Namecheap dashboard
+		read -p "Enter your Namecheap dynamic DNS password: " namecheap_dns_password
+		# Create a script to update your IP at Namecheap using curl
+		{
+			echo '#!/bin/bash';
+			echo;
+			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$namecheap_domain&password=$namecheap_dns_password\" > /dev/null"
+		} > /home/"$default_user"/scripts/dns-update.sh
+		# Make the script executable and owned by the default user
+		chmod +x /home/"$default_user"/scripts/dns-update.sh
+		chown "$default_user":"$default_user" /home/"$default_user"/scripts/dns-update.sh
+		# Create systemd unit and timer to call the script every 5 minutes
+		cat > /etc/systemd/system/dns-update.service <<EOF
+[Unit]
+Description=Update DNS
+
+[Service]
+User=$default_user
+ExecStart=/home/$default_user/scripts/dns-update.sh
+
+[Install]
+WantedBy=basic.target
+EOF
+		cat > /etc/systemd/system/dns-update.timer <<EOF
+[Unit]
+Description=Update DNS
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+EOF
+		# Enable and start the timer
+		systemctl daemon-reload
+		systemctl enable --now dns-update.timer
+	fi
+fi
+
+
 ### Gotify
 read -p "Install and setup gotify server? [Y,n]: " gotifyserver
 if [ "$gotifyserver" != "n" ]; then
