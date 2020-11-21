@@ -22,6 +22,7 @@ fi
 
 ### Define some variables
 hostname=$(uname -n | tr -d '\n')
+root_fs_type=$(mount | grep "^/dev" | grep -oP "(?<=on / type )[^ ]+" | tr -d '\n')
 
 
 ### Update system and install packages
