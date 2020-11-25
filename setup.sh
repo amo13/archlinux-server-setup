@@ -174,6 +174,33 @@ EOF
 fi
 
 
+### MariaDB
+read -p "Setup mariadb? [Y,n]: " setup_mariadb
+if [ "$setup_mariadb" != "n" ]; then
+	# Install mariadb and client-side packages
+	pacman -S --noconfirm mariadb mysql-python
+	# Disable Copy-On-Write for /var/lib/mysql if it resides on BTRFS
+	if [ "$root_fs_type" == "btrfs" ]; then
+		chattr +C /var/lib/mysql
+	fi
+	# Initialize the MariaDB data directory
+	mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+	# Enable and start mariadb
+	systemctl enable --now mariadb
+	# Improve initial security (perform mysql_secure_installation actions)
+	# Make sure that NOBODY can access the server without a password
+	mysql -e "UPDATE mysql.user SET Password = PASSWORD('CHANGEME') WHERE User = 'root'"
+	# Kill the anonymous users
+	mysql -e "DROP USER ''@'localhost'"
+	# Because our hostname varies we'll use some Bash magic here.
+	mysql -e "DROP USER ''@'$(hostname)'"
+	# Kill off the demo database
+	mysql -e "DROP DATABASE test"
+	# Make our changes take effect
+	mysql -e "FLUSH PRIVILEGES"
+fi
+
+
 ### Redis
 read -p "Install and setup redis? [Y,n]: " setup_redis
 if [ "$setup_redis" != "n" ]; then
