@@ -196,16 +196,16 @@ fi
 
 ### Namecheap dynamic DNS update
 read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
-if [ "$namecheap_domain" != "domain.tld" ]; then
+if [ "$namecheap_domain" != "n" ]; then
 	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
 	if [ "$namecheap_domain_update" != "n" ]; then
 		# Ask for the dynamic DNS password from the Namecheap dashboard
-		read -p "Enter your Namecheap dynamic DNS password: " namecheap_dns_password
+		read -p "Enter your Namecheap dynamic DNS password for $user_domain: " namecheap_dns_password
 		# Create a script to update your IP at Namecheap using curl
 		{
 			echo '#!/bin/bash';
 			echo;
-			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$namecheap_domain&password=$namecheap_dns_password\" > /dev/null"
+			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$user_domain&password=$namecheap_dns_password\" > /dev/null"
 		} > /home/"$default_user"/scripts/dns-update.sh
 		# Make the script executable and owned by the default user
 		chmod +x /home/"$default_user"/scripts/dns-update.sh
