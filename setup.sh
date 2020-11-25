@@ -63,45 +63,34 @@ cd /home/"$default_user" || exit
 
 
 ### Sudo (part 1)
-read -p "Install and setup sudo for your user? [Y,n]: " setup_sudo
-if [ "$setup_sudo" != "n" ]; then
-	# Install sudo
-	pacman -S --noconfirm sudo
-	# Modify sudoers file to allow members of the wheel group
-	sed '/%wheel ALL=(ALL) NOPASSWD: ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
-fi
+# Install sudo
+pacman -S --noconfirm sudo
+# Modify sudoers file to allow members of the wheel group
+sed '/%wheel ALL=(ALL) NOPASSWD: ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visudo
 
 
 ### yay AUR helper
-read -p "Install yay AUR helper? [Y,n]: " setup_yay
-if [ "$setup_yay" != "n" ]; then
-	runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git 
-	runuser -u "$default_user" -- sh -c 'cd yay && makepkg -rsi --noconfirm'
-fi
+runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git 
+runuser -u "$default_user" -- sh -c 'cd yay && makepkg -rsi --noconfirm'
 
 
 ### SSH
-read -p "Install and setup SSH? [Y,n]: " setup_ssh
-if [ "$setup_ssh" != "n" ]; then
-	# Install openssh
-	pacman -S --noconfirm openssh
-	# Prohibit ssh login as root
-	sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-	# Enable and start the ssh daemon
-	systemctl enable --now sshd
-fi
+# Install openssh
+pacman -S --noconfirm openssh
+# Prohibit ssh login as root
+sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+# Enable and start the ssh daemon
+systemctl enable --now sshd
 
 
 ### Pacman clean cache hook
-read -p "Setup a pacman hook to clean up its cache? [Y,n]: " pacman_cleanup_hook
-if [ "$pacman_cleanup_hook" != "n" ]; then
-	read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
-	# Set to default if nothing has been entered
-	[ -z "$pacman_cleanup_hook_keep" ] && pacman_cleanup_hook_keep=2
-	# Create the parent folder
-	mkdir -p /etc/pacman.d/hooks
-	# Write the hook (Do not indent the following lines!)
-	cat > /etc/pacman.d/hooks/clean-cache.hook <<EOF
+read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
+# Set how many packages to keep in pacman's cache
+pacman_cleanup_hook_keep=2
+# Create the parent folder
+mkdir -p /etc/pacman.d/hooks
+# Write the hook (Do not indent the following lines!)
+cat > /etc/pacman.d/hooks/clean-cache.hook <<EOF
 [Trigger]
 Operation = Remove
 Operation = Install
@@ -114,7 +103,6 @@ Description = Keep the last cache and the currently installed.
 When = PostTransaction
 Exec = /usr/bin/paccache -rk$pacman_cleanup_hook_keep
 EOF
-fi
 
 
 ### fstrim
