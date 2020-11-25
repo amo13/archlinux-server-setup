@@ -176,16 +176,17 @@ if [ "$setup_mariadb" != "n" ]; then
 	# Enable and start mariadb
 	systemctl enable --now mariadb
 	# Improve initial security (perform mysql_secure_installation actions)
-	# Make sure that NOBODY can access the server without a password
-	mysql -e "UPDATE mysql.user SET Password = PASSWORD('CHANGEME') WHERE User = 'root'"
-	# Kill the anonymous users
-	mysql -e "DROP USER ''@'localhost'"
-	# Because our hostname varies we'll use some Bash magic here.
-	mysql -e "DROP USER ''@'$(hostname)'"
-	# Kill off the demo database
-	mysql -e "DROP DATABASE test"
-	# Make our changes take effect
-	mysql -e "FLUSH PRIVILEGES"
+	read -p "Enter new MariaDB root password: " new_mariadb_root_pw
+	mysql_secure_installation <<EOF
+
+y
+$new_mariadb_root_pw
+$new_mariadb_root_pw
+y
+y
+y
+y
+EOF
 fi
 
 
