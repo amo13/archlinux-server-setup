@@ -71,3 +71,10 @@ If you want to change how and where the notifications are delivered, you should 
 
 You might have more BTRFS filesystems than just the root filesystem. If so, you need to enable and start the appropriate instance of the `btrfs-check@.timer` systemd template unit. For example, if you want to periodically have the BTRFS mount point `/storage/array` checked, call `sudo systemctl enable --now btrfs-check@storage-array.timer`.
 If you have a BTRFS RAID array able to use copies to automatically repair corrupted blocks, you might want to enable and start periodic scrubs: `systemctl enable --now btrfs-scrub@storage-array.timer`.
+
+### Change gotify admin user password
+
+Login to your gotify server using the password "admin" and change it.
+
+### Reboot
+Don't forget to reboot at the end. A few things need a reboot for kernel modules to be loaded or other small changes to take effect.
