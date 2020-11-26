@@ -473,6 +473,15 @@ fi
 
 
 
+### Finalize
+
+### MariaDB (part 2)
+if [ "$setup_mariadb" != "n" ]; then
+	# Improve initial security for MariaDB
+	echo "Improve initial security for MariaDB: running mysql_secure_installation script..."
+	mysql_secure_installation
+fi
+
 ### Sudo (part 2)
 if [ "$setup_sudo" != "n" ]; then
 	# Remove temporary passwordless sudo for wheel group
