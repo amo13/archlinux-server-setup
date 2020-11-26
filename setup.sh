@@ -258,7 +258,7 @@ if [ "$setup_postgres" != "n" ]; then
 		chattr +C /var/lib/postgres/data
 	fi
 	# Initialize the database
-	sudo -u postgres initdb -D /var/lib/postgres/data
+	runuser -u postgres -- sh -c 'initdb -D /var/lib/postgres/data'
 	# Enable and start the database service
 	systemctl enable --now postgresql
 	# Enable the pdo_pgsql extension for php if php has been installed
