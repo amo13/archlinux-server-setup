@@ -118,6 +118,35 @@ if [ "$activate_fstrim" != "n" ]; then
 fi
 
 
+### BTRFS health check
+if [ "$root_fs_type" == "btrfs" ]; then
+	cat > /etc/systemd/system/btrfs-check@.service <<EOF
+[Unit]
+Description=BTRFS health check on %f
+
+[Service]
+ExecStart=/usr/bin/btrfs device stats -c %f
+
+[Install]
+WantedBy=basic.target
+EOF
+	cat > /etc/systemd/system/btrfs-check@.timer <<EOF
+[Unit]
+Description=Check BTRFS health on %f twice a day
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=12h
+
+[Install]
+WantedBy=timers.target
+EOF
+	# Enable and start the BTRFS check timer
+	systemctl daemon-reload
+	systemctl enable --now btrfs-check@-.timer
+fi
+
+
 ### Nginx
 read -p "Install and setup nginx? [Y,n]: " setup_nginx
 if [ "$setup_nginx" != "n" ]; then
