@@ -63,3 +63,11 @@ Install, activate and start fail2ban. It will monitor the ssh and nginx logs.
 ### Smartmontools
 Install, activate and start smartmontools. It will monitor all drives and send notifications on potential problems using gotify.
 If you want to change how and where the notifications are delivered, you should modify the contents of the `/usr/share/smartmontools/smartd_warning.d/smartd-warning.sh` script accordingly. Also periodically dump the smartd logs to `/var/log/smartd` so it can be parsed by netdata if needed.
+
+
+## Still to do afterwards
+
+### BTRFS check and scrub other drives
+
+You might have more BTRFS filesystems than just the root filesystem. If so, you need to enable and start the appropriate instance of the `btrfs-check@.timer` systemd template unit. For example, if you want to periodically have the BTRFS mount point `/storage/array` checked, call `sudo systemctl enable --now btrfs-check@storage-array.timer`.
+If you have a BTRFS RAID array able to use copies to automatically repair corrupted blocks, you might want to enable and start periodic scrubs: `systemctl enable --now btrfs-scrub@storage-array.timer`.
