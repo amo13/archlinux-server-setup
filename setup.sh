@@ -207,6 +207,23 @@ if [ "$setup_mariadb" != "n" ]; then
 fi
 
 
+### PostgreSQL
+read -p "Setup PostgreSQL? [Y,n]: " setup_postgres
+if [ "$setup_postgres" != "n" ]; then
+	# Install PostgreSQL
+	pacman -S --noconfirm postgresql
+	# Disable Copy-On-Write for /var/lib/postgres if it resides on BTRFS
+	if [ "$root_fs_type" == "btrfs" ]; then
+		chattr +C /var/lib/postgres
+		chattr +C /var/lib/postgres/data
+	fi
+	# Initialize the database
+	sudo -u postgres initdb -D /var/lib/postgres/data
+	# Enable and start the database service
+	systemctl enable --now postgresql
+fi
+
+
 ### Redis
 read -p "Install and setup redis? [Y,n]: " setup_redis
 if [ "$setup_redis" != "n" ]; then
