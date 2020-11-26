@@ -204,18 +204,6 @@ if [ "$setup_mariadb" != "n" ]; then
 	mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 	# Enable and start mariadb
 	systemctl enable --now mariadb
-	# Improve initial security (perform mysql_secure_installation actions)
-	read -p "Enter new MariaDB root password: " new_mariadb_root_pw
-	mysql_secure_installation <<EOF
-
-y
-$new_mariadb_root_pw
-$new_mariadb_root_pw
-y
-y
-y
-y
-EOF
 fi
 
 
