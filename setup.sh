@@ -191,6 +191,41 @@ EOF
 fi
 
 
+### PHP
+read -p "Setup PHP? [Y,n]: " setup_php
+if [ "$setup_php" != "n" ]; then
+	# Install php and additional modules
+	pacman -S --noconfirm php php-fpm php-gd php-igbinary php-imagick php-intl php-sqlite php-tidy php-apcu composer
+	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm php-smbclient'
+	# Enable widely used extensions
+	sed -i '/extension=bcmath/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=bz2/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=exif/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=ftp/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=gd/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=gettext/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=gmp/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=iconv/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=imap/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=intl/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=ldap/s/^;//g' /etc/php/php.ini
+	sed -i '/zend_extension=opcache/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=pdo_sqlite/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=tidy/s/^;//g' /etc/php/php.ini
+	sed -i '/extension=igbinary/s/^;//g' /etc/php/conf.d/igbinary.ini
+	sed -i '/extension=imagick/s/^;//g' /etc/php/conf.d/imagick.ini
+	sed -i '/extension=smbclient/s/^;//g' /etc/php/conf.d/smbclient.ini
+	sed -i '/extension=apcu/s/^;//g' /etc/php/conf.d/apcu.ini
+	# Configure php-fpm to allow read and write to /usr/share/webapps
+	mkdir -p /etc/systemd/system/php-fpm.service.d
+	echo '[Service]' >> /etc/systemd/system/php-fpm.service.d/override.conf
+	echo 'ReadWritePaths = /usr/share/webapps' >> /etc/systemd/system/php-fpm.service.d/override.conf
+	# Enable and start php-fpm
+	systemctl daemon-reload
+	systemctl enable --now php-fpm
+fi
+
+
 ### MariaDB
 read -p "Setup mariadb? [Y,n]: " setup_mariadb
 if [ "$setup_mariadb" != "n" ]; then
@@ -204,6 +239,11 @@ if [ "$setup_mariadb" != "n" ]; then
 	mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 	# Enable and start mariadb
 	systemctl enable --now mariadb
+	# Enable the pdo_mysql extension for php if php has been installed
+	if [ "$setup_php" != "n" ]; then
+		sed -i '/extension=pdo_mysql/s/^;//g' /etc/php/php.ini
+		sed -i '/extension=mysqli/s/^;//g' /etc/php/php.ini
+	fi
 fi
 
 
@@ -221,6 +261,11 @@ if [ "$setup_postgres" != "n" ]; then
 	sudo -u postgres initdb -D /var/lib/postgres/data
 	# Enable and start the database service
 	systemctl enable --now postgresql
+	# Enable the pdo_pgsql extension for php if php has been installed
+	if [ "$setup_php" != "n" ]; then
+		sed -i '/extension=pdo_pgsql/s/^;//g' /etc/php/php.ini
+		sed -i '/extension=pgsql/s/^;//g' /etc/php/php.ini
+	fi
 fi
 
 
@@ -228,7 +273,7 @@ fi
 read -p "Install and setup redis? [Y,n]: " setup_redis
 if [ "$setup_redis" != "n" ]; then
 	# Install redis and client-side packages
-	pacman -S --noconfirm redis php-redis python-redis
+	pacman -S --noconfirm redis python-redis
 	# Change the configuration file to enable the unix socket
 	sed -i 's/# unixsocket \/tmp\/redis.sock/unixsocket \/run\/redis\/redis.sock/g' /etc/redis.conf
 	sed -i 's/# unixsocketperm 700/unixsocketperm 770/g' /etc/redis.conf
@@ -241,6 +286,12 @@ if [ "$setup_redis" != "n" ]; then
 	echo 'vm.overcommit_memory=1' >> /etc/sysctl.d/99-sysctl.conf
 	# Enable and start redis
 	systemctl enable --now redis
+	if [ "$setup_php" != "n" ]; then
+		# Install redis extension for php
+		pacman -S --noconfirm php-redis
+		# Enable php-redis
+		sed -i '/extension=redis/s/^;//g' /etc/php/conf.d/redis.ini
+	fi
 fi
 
 
