@@ -481,9 +481,11 @@ if [ "$setup_smartmontools" != "n" ]; then
 	pacman -S --noconfirm smartmontools
 	# Dump smartd logs for potential parsing by netdata
 	# Create parent folder
-	mkdir -p "/var/log/smartd"
+	#mkdir -p "/var/log/smartd"
+	# Disable copy-on-write on BTRFS
+	#[ "$root_fs_type" == "btrfs" ] && chattr +C /var/log/smartd
 	# Write the environment file
-	echo 'SMARTD_ARGS="-A /var/log/smartd/ -i 600"' > /etc/conf.d/smartd
+	#echo 'SMARTD_ARGS="-A /var/log/smartd/ -i 600"' > /etc/conf.d/smartd
 	# Notify about potential problems using gotify
 	{
 		echo '#!/bin/bash';
