@@ -504,6 +504,55 @@ if [ "$setup_smartmontools" != "n" ]; then
 fi
 
 
+### Nextcloud
+[ "$stfu" == "y" ] && setup_nextcloud="y" || read -p "Install and setup Nextcloud? [Y,n]: " setup_nextcloud
+if [ "$setup_nextcloud" != "n" ]; then
+	# Install ffmpeg for preview generation and nextcloud-systemd-timers as alternative to cron
+	pacman -S --noconfirm ffmpeg
+	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm nextcloud-systemd-timers'
+	# Setup database using MariaDB
+	echo 'Creating database "nextcloud" with user "nextcloud" and password "nextcloud"...'
+	mysql -u root -e "CREATE DATABASE nextcloud DEFAULT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci';"
+	mysql -u root -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'localhost' IDENTIFIED BY 'nextcloud';"
+	mysql -u root -e "FLUSH PRIVILEGES;"
+	# Make sure /usr/share/webapps exists
+	mkdir -p /usr/share/webapps
+	# Change working directory to /usr/share/webapps
+	cd /usr/share/webapps || exit
+	# Ask for link to latest nextcloud release tarball and download it
+	read -p "Please paste the url to the latest nextcloud release tarball: " nextcloud_latest
+	curl -L "$nextcloud_latest" -o nextcloud-latest.tar.bz2
+	# Unpack and remove the tarball
+	tar -xf nextcloud-latest.tar.bz2
+	rm nextcloud-latest.tar.bz2
+	# Set the nextcloud directory to be owned by http
+	chown -R http:http /usr/share/webapps/nextcloud
+	# Change working directory back to home
+	cd /home/"$default_user" || exit
+	# Download the nginx config and add nginx virtual host if nginx has been set up
+	if [ "$setup_nginx" != "n" ]; then
+		curl -L "${repo_raw_url}files/nextcloud.conf" -o /etc/nginx/sites-available/nextcloud.conf
+		# Set the nextcloud config to use redis
+		{
+			echo 'upstream php-handler {';
+			echo '  server unix:/run/php-fpm/php-fpm.sock;';
+			echo '}';
+			echo;
+			echo 'server {';
+			echo "  server_name nextcloud.$user_domain;";
+			echo '  listen 80;';
+			echo '  listen [::]:80;';
+			echo '  include sites-available/nextcloud.conf;';
+			echo '}';
+		} > /etc/nginx/sites-available/nextcloud."$user_domain"
+		# Actually activate the nextcloud virtual host
+		ln -s /etc/nginx/sites-available/nextcloud."$user_domain" /etc/nginx/sites-enabled/nextcloud."$user_domain"
+		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
+		systemctl reload nginx
+	fi
+fi
+
+
 ### Namecheap dynamic DNS update
 read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
 if [ "$namecheap_domain" != "n" ]; then
