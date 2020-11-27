@@ -371,7 +371,7 @@ if [ "$gotifyserver" != "n" ]; then
 			echo '  }';
 			echo '}';
 		} > /etc/nginx/sites-available/gotify."$user_domain"
-		# Actually activate the gotify virtual host if a domain was previously given
+		# Actually activate the gotify virtual host
 		ln -s /etc/nginx/sites-available/gotify."$user_domain" /etc/nginx/sites-enabled/gotify."$user_domain"
 		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
 		systemctl reload nginx
