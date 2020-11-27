@@ -12,6 +12,19 @@
 # shellcheck disable=SC2162
 # shellcheck disable=SC2012
 
+### Parse command line arguments
+while [ ! -z "$1" ];do
+   case "$1" in
+        --stfu|--all)
+          stfu="y"
+          ;;
+        *)
+       echo "Incorrect input provided"
+       exit
+   esac
+shift
+done
+
 
 ### Script needs to be started as root
 if [ ! "$(whoami)" == "root" ]; then
@@ -84,7 +97,7 @@ systemctl enable --now sshd
 
 
 ### Pacman clean cache hook
-read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
+[ "$stfu" == "y" ] || read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
 # Set how many packages to keep in pacman's cache
 pacman_cleanup_hook_keep=2
 # Create the parent folder
@@ -106,7 +119,7 @@ EOF
 
 
 ### fstrim
-read -p "Activate daily filesystem trim? [Y,n]: " activate_fstrim
+[ "$stfu" == "y" ] && activate_fstrim="y" || read -p "Activate daily filesystem trim? [Y,n]: " activate_fstrim
 if [ "$activate_fstrim" != "n" ]; then
 	# Create parent folder
 	mkdir -p /etc/systemd/system/fstrim.timer.d
@@ -148,7 +161,7 @@ fi
 
 
 ### Nginx
-read -p "Install and setup nginx? [Y,n]: " setup_nginx
+[ "$stfu" == "y" ] && setup_nginx="y" || read -p "Install and setup nginx? [Y,n]: " setup_nginx
 if [ "$setup_nginx" != "n" ]; then
 	# Install nginx
 	pacman -S --noconfirm nginx
@@ -192,7 +205,7 @@ fi
 
 
 ### PHP
-read -p "Setup PHP? [Y,n]: " setup_php
+[ "$stfu" == "y" ] && setup_php="y" || read -p "Setup PHP? [Y,n]: " setup_php
 if [ "$setup_php" != "n" ]; then
 	# Install php and additional modules
 	pacman -S --noconfirm php php-fpm php-gd php-igbinary php-imagick php-intl php-sqlite php-tidy php-apcu composer
@@ -227,7 +240,7 @@ fi
 
 
 ### MariaDB
-read -p "Setup mariadb? [Y,n]: " setup_mariadb
+[ "$stfu" == "y" ] && setup_mariadb="y" || read -p "Setup mariadb? [Y,n]: " setup_mariadb
 if [ "$setup_mariadb" != "n" ]; then
 	# Install mariadb and client-side packages
 	pacman -S --noconfirm mariadb mysql-python
@@ -248,7 +261,7 @@ fi
 
 
 ### PostgreSQL
-read -p "Setup PostgreSQL? [Y,n]: " setup_postgres
+[ "$stfu" == "y" ] && setup_postgres="y" || read -p "Setup PostgreSQL? [Y,n]: " setup_postgres
 if [ "$setup_postgres" != "n" ]; then
 	# Install PostgreSQL
 	pacman -S --noconfirm postgresql
@@ -270,7 +283,7 @@ fi
 
 
 ### Redis
-read -p "Install and setup redis? [Y,n]: " setup_redis
+[ "$stfu" == "y" ] && setup_redis="y" || read -p "Install and setup redis? [Y,n]: " setup_redis
 if [ "$setup_redis" != "n" ]; then
 	# Install redis and client-side packages
 	pacman -S --noconfirm redis python-redis
@@ -296,7 +309,7 @@ fi
 
 
 ### Gotify
-read -p "Install and setup gotify server? [Y,n]: " gotifyserver
+[ "$stfu" == "y" ] && gotifyserver="y" || read -p "Install and setup gotify server? [Y,n]: " gotifyserver
 if [ "$gotifyserver" != "n" ]; then
 	# Install the gotify server
 	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm gotify-server-bin'
@@ -355,7 +368,7 @@ fi
 
 
 ### Systemd service failure notification with gotify
-read -p "Send systemd service failure notifications to gotify? [Y,n]: " systemd_failure_notifications
+[ "$stfu" == "y" ] && systemd_failure_notifications="y" || read -p "Send systemd service failure notifications to gotify? [Y,n]: " systemd_failure_notifications
 if [ "$systemd_failure_notifications" != "n" ]; then
 	# Create parent folder
 	mkdir -p /etc/systemd/system/service.d
@@ -417,7 +430,7 @@ fi
 
 
 ### Fail2ban
-read -p "Install and setup fail2ban? [Y,n]: " setup_fail2ban
+[ "$stfu" == "y" ] && setup_fail2ban="y" || read -p "Install and setup fail2ban? [Y,n]: " setup_fail2ban
 if [ "$setup_fail2ban" != "n" ]; then
 	# Install fail2ban
 	pacman -S --noconfirm fail2ban
@@ -451,7 +464,7 @@ fi
 
 
 ### Smartmontools
-read -p "Install and setup smartmontools? [Y,n]: " setup_smartmontools
+[ "$stfu" == "y" ] && setup_smartmontools="y" || read -p "Install and setup smartmontools? [Y,n]: " setup_smartmontools
 if [ "$setup_smartmontools" != "n" ]; then
 	# Install smartmontools
 	pacman -S --noconfirm smartmontools

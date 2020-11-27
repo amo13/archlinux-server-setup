@@ -11,6 +11,10 @@ On your fresh Arch Linux installation, call:
 
 `bash <(curl -sSL https://raw.githubusercontent.com/amo13/archlinux-server-setup/main/setup.sh)`
 
+Or, if you want to perform all the tasks listed below, call
+
+`bash -- --stfu <(curl -sSL https://raw.githubusercontent.com/amo13/archlinux-server-setup/main/setup.sh)`
+
 
 ## What to expect
 All in all, this script tries to setup things as closely as possible to what is recommended by the Archwiki.
