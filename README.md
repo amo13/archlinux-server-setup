@@ -79,13 +79,13 @@ If you registered a domain with Namecheap, you can enter it together with the dy
 
 ## Still to do afterwards
 
-### BTRFS check and scrub other drives
+### SSL certificatesCertbot
 
+### BTRFS check and scrub other drives
 You might have more BTRFS filesystems than just the root filesystem. If so, you need to enable and start the appropriate instance of the `btrfs-check@.timer` systemd template unit. For example, if you want to periodically have the BTRFS mount point `/storage/array` checked, call `sudo systemctl enable --now btrfs-check@storage-array.timer`.
 If you have a BTRFS RAID array able to use copies to automatically repair corrupted blocks, you might want to enable and start periodic scrubs: `systemctl enable --now btrfs-scrub@storage-array.timer`.
 
 ### Change gotify admin user password
-
 Login to your gotify server using the password "admin" and change it.
 
 ### Reboot
