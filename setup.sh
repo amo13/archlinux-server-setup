@@ -229,6 +229,17 @@ if [ "$setup_php" != "n" ]; then
 	sed -i '/extension=imagick/s/^;//g' /etc/php/conf.d/imagick.ini
 	sed -i '/extension=smbclient/s/^;//g' /etc/php/conf.d/smbclient.ini
 	sed -i '/extension=apcu/s/^;//g' /etc/php/conf.d/apcu.ini
+	# Adjust settings of php and php-fpm according to nextcloud recommendations
+	sed -i 's/pm.max_children.*/pm.max_children = 120/g' /etc/php/php-fpm.d/www.conf
+	sed -i 's/pm.start_servers.*/pm.start_servers = 12/g' /etc/php/php-fpm.d/www.conf
+	sed -i 's/pm.min_spare_servers.*/pm.min_spare_servers = 6/g' /etc/php/php-fpm.d/www.conf
+	sed -i 's/pm.max_spare_servers.*/pm.max_spare_servers = 18/g' /etc/php/php-fpm.d/www.conf
+	sed -i '/opcache.enable/s/^;//g' /etc/php/php.ini
+	sed -i '/opcache.interned_strings_buffer/s/^;//g' /etc/php/php.ini
+	sed -i '/opcache.max_accelerated_files/s/^;//g' /etc/php/php.ini
+	sed -i '/opcache.memory_consumption/s/^;//g' /etc/php/php.ini
+	sed -i '/opcache.save_comments/s/^;//g' /etc/php/php.ini
+	sed -i '/opcache.revalidate_freq/s/^;//g' /etc/php/php.ini
 	# Configure php-fpm to allow read and write to /usr/share/webapps
 	mkdir -p /etc/systemd/system/php-fpm.service.d
 	echo '[Service]' >> /etc/systemd/system/php-fpm.service.d/override.conf
