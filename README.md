@@ -36,19 +36,24 @@ Add a pacman hook to clean the cached packages potentially freeing a lot of disk
 ### fstrim
 Activate periodic fstrim of drives supporting the feature using the systemd timer and service files provided by the system. Trim daily instead of weekly though.
 
+### BTRFS health check
+Create a systemd service and timer to periodically run `btrfs device stats -c /` if BTRFS has been detected as the root filesystem.
+
 ### Nginx
 Install, setup, enable and start nginx. Create `sites-available` and `sites-enabled` folders for easy management of many virtual hosts in separate files. Also put a template file for static sites into sites-available. 
 If you have a domain, you can enter it when prompted and web services installed afterwards will automatically be assigned a subdomain and get a nginx virtual host file accordingly.
 
 ### PHP
+Install and setup php with a lot of common extensions. Also install, enable and start php-fpm with `ReadWritePaths = /usr/share/webapps`.
 
 ### MariaDB
+Install, initialize, enable and start MariaDB.
+
+### PostgreSQL
+Install, initialize, enable and start PostgreSQL.
 
 ### Redis
 Install, enable and start redis. Also install php-redis and python-redis client software. Redis will be listening on port 6379 and will accept unix socket connections at /run/redis/redis.sock. Members of the redis group can access the socket. The default user and the http user are added to the redis group. A reboot is necessary to mitigate the warnings mentioned in the Archwiki under troubleshooting. 
-
-### Namecheap dynamic DNS update
-If you registered a domain with Namecheap, you can enter it together with the dynamic DNS password when prompted. This will create a small script in the `scripts` folder of your default user and setup a systemd service and timer to call it every 5 minutes. 
 
 ### Gotify
 Install, enable and start the gotify server. It will listen on port 8057. You can specify the default admin user name. You should change its password using the web UI after the script finished.
@@ -63,6 +68,9 @@ Install, activate and start fail2ban. It will monitor the ssh and nginx logs.
 ### Smartmontools
 Install, activate and start smartmontools. It will monitor all drives and send notifications on potential problems using gotify.
 If you want to change how and where the notifications are delivered, you should modify the contents of the `/usr/share/smartmontools/smartd_warning.d/smartd-warning.sh` script accordingly. Also periodically dump the smartd logs to `/var/log/smartd` so it can be parsed by netdata if needed.
+
+### Namecheap dynamic DNS update
+If you registered a domain with Namecheap, you can enter it together with the dynamic DNS password when prompted. This will create a small script in the `scripts` folder of your default user and setup a systemd service and timer to call it every 5 minutes. 
 
 
 ## Still to do afterwards
