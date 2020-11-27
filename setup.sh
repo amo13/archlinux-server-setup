@@ -34,6 +34,7 @@ fi
 
 
 ### Define some variables
+repo_raw_url='https://raw.githubusercontent.com/amo13/archlinux-server-setup/main/'
 hostname=$(uname -n | tr -d '\n')
 root_fs_type=$(mount | grep "^/dev" | grep -oP "(?<=on / type )[^ ]+" | tr -d '\n')
 
