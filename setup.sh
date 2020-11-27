@@ -99,7 +99,7 @@ systemctl enable --now sshd
 ### Pacman clean cache hook
 [ "$stfu" == "y" ] || read -p "Enter how many versions of each package to keep [default: 2]: " pacman_cleanup_hook_keep
 # Set how many packages to keep in pacman's cache
-pacman_cleanup_hook_keep=2
+[ -z $pacman_cleanup_hook_keep ] && pacman_cleanup_hook_keep=2
 # Create the parent folder
 mkdir -p /etc/pacman.d/hooks
 # Write the hook (Do not indent the following lines!)
