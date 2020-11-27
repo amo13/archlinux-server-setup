@@ -295,52 +295,6 @@ if [ "$setup_redis" != "n" ]; then
 fi
 
 
-### Namecheap dynamic DNS update
-read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
-if [ "$namecheap_domain" != "n" ]; then
-	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
-	if [ "$namecheap_domain_update" != "n" ]; then
-		# Ask for the dynamic DNS password from the Namecheap dashboard
-		read -p "Enter your Namecheap dynamic DNS password for $user_domain: " namecheap_dns_password
-		# Create a script to update your IP at Namecheap using curl
-		{
-			echo '#!/bin/bash';
-			echo;
-			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$user_domain&password=$namecheap_dns_password\" > /dev/null"
-		} > /home/"$default_user"/scripts/dns-update.sh
-		# Make the script executable and owned by the default user
-		chmod +x /home/"$default_user"/scripts/dns-update.sh
-		chown "$default_user":"$default_user" /home/"$default_user"/scripts/dns-update.sh
-		# Create systemd unit and timer to call the script every 5 minutes
-		cat > /etc/systemd/system/dns-update.service <<EOF
-[Unit]
-Description=Update DNS
-
-[Service]
-User=$default_user
-ExecStart=/home/$default_user/scripts/dns-update.sh
-
-[Install]
-WantedBy=basic.target
-EOF
-		cat > /etc/systemd/system/dns-update.timer <<EOF
-[Unit]
-Description=Update DNS
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=5min
-
-[Install]
-WantedBy=timers.target
-EOF
-		# Enable and start the timer
-		systemctl daemon-reload
-		systemctl enable --now dns-update.timer
-	fi
-fi
-
-
 ### Gotify
 read -p "Install and setup gotify server? [Y,n]: " gotifyserver
 if [ "$gotifyserver" != "n" ]; then
@@ -522,6 +476,51 @@ if [ "$setup_smartmontools" != "n" ]; then
 	systemctl enable --now smartd
 fi
 
+
+### Namecheap dynamic DNS update
+read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
+if [ "$namecheap_domain" != "n" ]; then
+	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
+	if [ "$namecheap_domain_update" != "n" ]; then
+		# Ask for the dynamic DNS password from the Namecheap dashboard
+		read -p "Enter your Namecheap dynamic DNS password for $user_domain: " namecheap_dns_password
+		# Create a script to update your IP at Namecheap using curl
+		{
+			echo '#!/bin/bash';
+			echo;
+			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$user_domain&password=$namecheap_dns_password\" > /dev/null"
+		} > /home/"$default_user"/scripts/dns-update.sh
+		# Make the script executable and owned by the default user
+		chmod +x /home/"$default_user"/scripts/dns-update.sh
+		chown "$default_user":"$default_user" /home/"$default_user"/scripts/dns-update.sh
+		# Create systemd unit and timer to call the script every 5 minutes
+		cat > /etc/systemd/system/dns-update.service <<EOF
+[Unit]
+Description=Update DNS
+
+[Service]
+User=$default_user
+ExecStart=/home/$default_user/scripts/dns-update.sh
+
+[Install]
+WantedBy=basic.target
+EOF
+		cat > /etc/systemd/system/dns-update.timer <<EOF
+[Unit]
+Description=Update DNS
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+EOF
+		# Enable and start the timer
+		systemctl daemon-reload
+		systemctl enable --now dns-update.timer
+	fi
+fi
 
 
 ### Finalize
