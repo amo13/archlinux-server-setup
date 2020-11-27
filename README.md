@@ -13,7 +13,7 @@ On your fresh Arch Linux installation, call:
 
 Or, if you want to perform all the tasks listed below, call
 
-`bash -- --stfu <(curl -sSL https://raw.githubusercontent.com/amo13/archlinux-server-setup/main/setup.sh)`
+`bash <(curl -sSL https://raw.githubusercontent.com/amo13/archlinux-server-setup/main/setup.sh) --stfu`
 
 
 ## What to expect
