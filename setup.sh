@@ -299,6 +299,10 @@ if [ "$setup_php" != "n" ]; then
 	sed -i '/opcache.memory_consumption/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.save_comments/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.revalidate_freq/s/^;//g' /etc/php/php.ini
+	sed -i 's/upload_max_filesize.*/upload_max_filesize = 16G/g' /etc/php/php.ini
+	sed -i 's/post_max_size.*/post_max_size = 16G/g' /etc/php/php.ini
+	sed -i 's/max_input_time =.*/max_input_time = 3600/g' /etc/php/php.ini
+	sed -i 's/max_execution_time.*/max_execution_time = 3600/g' /etc/php/php.ini
 	# Configure php-fpm to allow read and write to /usr/share/webapps
 	mkdir -p /etc/systemd/system/php-fpm.service.d
 	echo '[Service]' >> /etc/systemd/system/php-fpm.service.d/override.conf
