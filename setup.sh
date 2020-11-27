@@ -76,6 +76,8 @@ if [ -z "$user_domain" ]; then
 fi
 # Ask for gotify admin user name now if --stfu argument has been given
 [ "$stfu" == "y" ] && read -p "Enter admin user name for gotify [default: $default_user]: " gotify_admin_user
+# Set to default if nothing has been entered
+[ "$stfu" == "y" ] && [ -z "$gotify_admin_user" ] && gotify_admin_user="$default_user"
 # Ask for nextcloud tarball download url now if --stfu argument has been given
 [ "$stfu" == "y" ] && read -p "Please paste the url to the latest nextcloud release tarball: " nextcloud_latest
 
