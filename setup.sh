@@ -39,14 +39,6 @@ hostname=$(uname -n | tr -d '\n')
 root_fs_type=$(mount | grep "^/dev" | grep -oP "(?<=on / type )[^ ]+" | tr -d '\n')
 
 
-### Update system and install packages
-pacman -Syu --noconfirm base base-devel pacman-contrib reflector nano sudo htop git
-
-
-### Enable and start reflector timer
-systemctl enable --now reflector.timer
-
-
 ### Default unprivileged user
 create_default_user() {
 	useradd -m -G ftp,http,mail,wheel "$1"
@@ -74,6 +66,75 @@ fi
 
 ### Set the home folder of the default user as working directory
 cd /home/"$default_user" || exit
+
+
+### Ask all inevitable questions right at the beginning
+# Ask for the domain to use
+read -p "Enter your domain or leave empty if you do not have one: " user_domain
+if [ -z "$user_domain" ]; then
+	user_domain="domain.tld"
+fi
+# Ask for gotify admin user name now if --stfu argument has been given
+[ "$stfu" == "y" ] && read -p "Enter admin user name for gotify [default: $default_user]: " gotify_admin_user
+# Ask for nextcloud tarball download url now if --stfu argument has been given
+[ "$stfu" == "y" ] && read -p "Please paste the url to the latest nextcloud release tarball: " nextcloud_latest
+
+
+### Namecheap dynamic DNS update
+read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
+if [ "$namecheap_domain" != "n" ]; then
+	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
+	if [ "$namecheap_domain_update" != "n" ]; then
+		# Ask for the dynamic DNS password from the Namecheap dashboard
+		read -p "Enter your Namecheap dynamic DNS password for $user_domain: " namecheap_dns_password
+		# Make sure the parent folder of the following script exists and is owned by the default user
+		mkdir -p /home/"$default_user"/scripts
+		chown -R $default_user:$default_user /home/"$default_user"/scripts
+		# Create a script to update your IP at Namecheap using curl
+		{
+			echo '#!/bin/bash';
+			echo;
+			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$user_domain&password=$namecheap_dns_password\" > /dev/null"
+		} > /home/"$default_user"/scripts/dns-update.sh
+		# Make the script executable and owned by the default user
+		chmod +x /home/"$default_user"/scripts/dns-update.sh
+		chown "$default_user":"$default_user" /home/"$default_user"/scripts/dns-update.sh
+		# Create systemd unit and timer to call the script every 5 minutes
+		cat > /etc/systemd/system/dns-update.service <<EOF
+[Unit]
+Description=Update DNS
+
+[Service]
+User=$default_user
+ExecStart=/home/$default_user/scripts/dns-update.sh
+
+[Install]
+WantedBy=basic.target
+EOF
+		cat > /etc/systemd/system/dns-update.timer <<EOF
+[Unit]
+Description=Update DNS
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+EOF
+		# Enable and start the timer
+		systemctl daemon-reload
+		systemctl enable --now dns-update.timer
+	fi
+fi
+
+
+### Update system and install packages
+pacman -Syu --noconfirm base base-devel pacman-contrib reflector nano sudo htop git
+
+
+### Enable and start reflector timer
+systemctl enable --now reflector.timer
 
 
 ### Sudo (part 1)
@@ -177,11 +238,6 @@ if [ "$setup_nginx" != "n" ]; then
 	# Create the sites-available and sites-enabled folders
 	mkdir -p /etc/nginx/sites-available
 	mkdir -p /etc/nginx/sites-enabled
-	# Ask for the domain to use
-	read -p "Enter your domain or leave empty if you do not have one: " user_domain
-	if [ -z "$user_domain" ]; then
-		user_domain="domain.tld"
-	fi
 	# Create a template virtual host config file for static content
 	cat > /etc/nginx/sites-available/template <<EOF
 server {
@@ -326,7 +382,7 @@ if [ "$gotifyserver" != "n" ]; then
 	# Install the gotify server
 	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm gotify-server-bin'
 	# Set admin user name
-	read -p "Enter admin user name for gotify [default: $default_user]: " gotify_admin_user
+	[ -z $gotify_admin_user ] && read -p "Enter admin user name for gotify [default: $default_user]: " gotify_admin_user
 	# Set to default if nothing has been entered
 	[ -z "$gotify_admin_user" ] && gotify_admin_user="$default_user"
 	sed -i -e "s/name: admin/name: $gotify_admin_user/g" /etc/gotify/config.yml
@@ -520,7 +576,7 @@ if [ "$setup_nextcloud" != "n" ]; then
 	# Change working directory to /usr/share/webapps
 	cd /usr/share/webapps || exit
 	# Ask for link to latest nextcloud release tarball and download it
-	read -p "Please paste the url to the latest nextcloud release tarball: " nextcloud_latest
+	[ -z $nextcloud_latest ] && read -p "Please paste the url to the latest nextcloud release tarball: " nextcloud_latest
 	curl -L "$nextcloud_latest" -o nextcloud-latest.tar.bz2
 	# Unpack and remove the tarball
 	tar -xf nextcloud-latest.tar.bz2
@@ -549,52 +605,6 @@ if [ "$setup_nextcloud" != "n" ]; then
 		ln -s /etc/nginx/sites-available/nextcloud."$user_domain" /etc/nginx/sites-enabled/nextcloud."$user_domain"
 		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
 		systemctl reload nginx
-	fi
-fi
-
-
-### Namecheap dynamic DNS update
-read -p "Is your domain registered with namecheap? [Y,n]: " namecheap_domain
-if [ "$namecheap_domain" != "n" ]; then
-	read -p "Setup a DNS update timer? [Y,n]: " namecheap_domain_update
-	if [ "$namecheap_domain_update" != "n" ]; then
-		# Ask for the dynamic DNS password from the Namecheap dashboard
-		read -p "Enter your Namecheap dynamic DNS password for $user_domain: " namecheap_dns_password
-		# Create a script to update your IP at Namecheap using curl
-		{
-			echo '#!/bin/bash';
-			echo;
-			echo "curl \"https://dynamicdns.park-your-domain.com/update?host=@&domain=$user_domain&password=$namecheap_dns_password\" > /dev/null"
-		} > /home/"$default_user"/scripts/dns-update.sh
-		# Make the script executable and owned by the default user
-		chmod +x /home/"$default_user"/scripts/dns-update.sh
-		chown "$default_user":"$default_user" /home/"$default_user"/scripts/dns-update.sh
-		# Create systemd unit and timer to call the script every 5 minutes
-		cat > /etc/systemd/system/dns-update.service <<EOF
-[Unit]
-Description=Update DNS
-
-[Service]
-User=$default_user
-ExecStart=/home/$default_user/scripts/dns-update.sh
-
-[Install]
-WantedBy=basic.target
-EOF
-		cat > /etc/systemd/system/dns-update.timer <<EOF
-[Unit]
-Description=Update DNS
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=5min
-
-[Install]
-WantedBy=timers.target
-EOF
-		# Enable and start the timer
-		systemctl daemon-reload
-		systemctl enable --now dns-update.timer
 	fi
 fi
 
