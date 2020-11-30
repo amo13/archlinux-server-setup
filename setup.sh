@@ -353,6 +353,8 @@ if [ "$setup_postgres" != "n" ]; then
 		sed -i '/extension=pdo_pgsql/s/^;//g' /etc/php/php.ini
 		sed -i '/extension=pgsql/s/^;//g' /etc/php/php.ini
 	fi
+	# Restricts access rights to the database superuser by default
+	sed -i 's/local   all             all                                     trust/local   all             postgres                                peer/g' /var/lib/postgres/data/pg_hba.conf
 fi
 
 
