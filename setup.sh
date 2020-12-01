@@ -604,7 +604,10 @@ if [ "$setup_nextcloud" != "n" ]; then
 	cd /home/"$default_user" || exit
 	# Download the nginx config and add nginx virtual host if nginx has been set up
 	if [ "$setup_nginx" != "n" ]; then
+		# Fetch the nextcloud nginx configuration file
 		curl -L "${repo_raw_url}files/nextcloud.conf" -o /etc/nginx/sites-available/nextcloud.conf
+		# Enable HTTP Strict Transport Security
+		sed -i 's/#add_header Strict-Transport-Security.*/add_header Strict-Transport-Security "max-age=15768000; includeSubDomains;" always;/g' /etc/nginx/sites-available/nextcloud.conf
 		# Set the nextcloud config to use redis
 		{
 			echo 'upstream php-handler {';
