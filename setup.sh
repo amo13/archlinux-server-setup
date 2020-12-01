@@ -269,7 +269,7 @@ fi
 [ "$stfu" == "y" ] && setup_php="y" || read -p "Setup PHP? [Y,n]: " setup_php
 if [ "$setup_php" != "n" ]; then
 	# Install php and additional modules
-	pacman -S --noconfirm php php-fpm php-gd php-igbinary php-imagick php-intl php-sqlite php-tidy php-apcu composer
+	pacman -S --noconfirm php php-fpm php-gd php-igbinary php-imagick php-intl php-imap php-sqlite php-pgsql php-tidy php-apcu composer
 	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm php-smbclient'
 	# Enable widely used extensions
 	sed -i '/extension=bcmath/s/^;//g' /etc/php/php.ini
