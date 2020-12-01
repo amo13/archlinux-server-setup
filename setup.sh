@@ -265,6 +265,31 @@ EOF
 fi
 
 
+### Certbot / Let's Encrypt
+pacman -S --noconfirm certbot certbot-nginx
+cat > /etc/systemd/system/certbot.service <<EOF
+[Unit]
+Description=Let's Encrypt renewal
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/certbot renew --quiet --agree-tos
+EOF
+cat > /etc/systemd/system/certbot.timer <<EOF
+[Unit]
+Description=Twice daily renewal of Let's Encrypt's certificates
+
+[Timer]
+OnCalendar=0/12:00:00
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+
+
 ### PHP
 [ "$stfu" == "y" ] && setup_php="y" || read -p "Setup PHP? [Y,n]: " setup_php
 if [ "$setup_php" != "n" ]; then
