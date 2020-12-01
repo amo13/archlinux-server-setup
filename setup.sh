@@ -258,6 +258,8 @@ EOF
 	# Fix the warning: Could not build optimal types_hash
 	sed -i -e '/http {/a\' -e '    server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
 	sed -i -e '/http {/a\' -e '    types_hash_max_size 4096;' /etc/nginx/nginx.conf
+	# Raise fastcgi_read_timeout
+	sed -i -e '/http {/a\' -e '    fastcgi_read_timeout 600s;' /etc/nginx/nginx.conf
 	# Enable and start nginx
 	systemctl enable --now nginx
 fi
@@ -293,16 +295,23 @@ if [ "$setup_php" != "n" ]; then
 	sed -i 's/pm.start_servers.*/pm.start_servers = 12/g' /etc/php/php-fpm.d/www.conf
 	sed -i 's/pm.min_spare_servers.*/pm.min_spare_servers = 6/g' /etc/php/php-fpm.d/www.conf
 	sed -i 's/pm.max_spare_servers.*/pm.max_spare_servers = 18/g' /etc/php/php-fpm.d/www.conf
+	sed -i '/env\[HOSTNAME\]/s/^;//g' /etc/php/php-fpm.d/www.conf
+	sed -i '/env\[PATH\]/s/^;//g' /etc/php/php-fpm.d/www.conf
+	sed -i '/env\[TMP\]/s/^;//g' /etc/php/php-fpm.d/www.conf
+	sed -i '/env\[TMPDIR\]/s/^;//g' /etc/php/php-fpm.d/www.conf
+	sed -i '/env\[TEMP\]/s/^;//g' /etc/php/php-fpm.d/www.conf
 	sed -i '/opcache.enable/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.interned_strings_buffer/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.max_accelerated_files/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.memory_consumption/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.save_comments/s/^;//g' /etc/php/php.ini
 	sed -i '/opcache.revalidate_freq/s/^;//g' /etc/php/php.ini
+	sed -i 's/memory_limit.*/memory_limit = 512M/g' /etc/php/php.ini
 	sed -i 's/upload_max_filesize.*/upload_max_filesize = 16G/g' /etc/php/php.ini
 	sed -i 's/post_max_size.*/post_max_size = 16G/g' /etc/php/php.ini
 	sed -i 's/max_input_time =.*/max_input_time = 3600/g' /etc/php/php.ini
 	sed -i 's/max_execution_time.*/max_execution_time = 3600/g' /etc/php/php.ini
+	sed -i 's/default_socket_timeout.*/default_socket_timeout = 600/g' /etc/php/php.ini
 	# Configure php-fpm to allow read and write to /usr/share/webapps
 	mkdir -p /etc/systemd/system/php-fpm.service.d
 	echo '[Service]' >> /etc/systemd/system/php-fpm.service.d/override.conf
