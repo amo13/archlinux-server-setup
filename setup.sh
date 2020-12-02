@@ -671,7 +671,7 @@ if [ "$setup_nextcloud" != "n" ]; then
 			echo 'filter = nextcloud';
 			echo 'maxretry = 5';
 			echo 'bantime = 3600';
-			echo 'findtime = 43200';
+			echo 'findtime = 3600';
 			echo 'logpath = /usr/share/webapps/nextcloud/data/nextcloud.log';
 		} > /etc/fail2ban/jail.d/nextcloud.local
 		# Reload fail2ban
