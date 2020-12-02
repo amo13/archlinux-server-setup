@@ -651,6 +651,8 @@ if [ "$setup_nextcloud" != "n" ]; then
 		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
 		systemctl reload nginx
 	fi
+	# Enable and start systemd timers as a replacement for ajax or cron
+	systemctl enable --now nextcloud-cron
 	# Setup a fail2ban filter and a jail for nextcloud
 	if [ "$setup_fail2ban" != "n" ]; then
 		# Create filter
