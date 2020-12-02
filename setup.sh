@@ -633,7 +633,7 @@ if [ "$setup_nextcloud" != "n" ]; then
 		curl -L "${repo_raw_url}files/nextcloud.conf" -o /etc/nginx/sites-available/nextcloud.conf
 		# Enable HTTP Strict Transport Security
 		sed -i 's/#add_header Strict-Transport-Security.*/add_header Strict-Transport-Security "max-age=15768000; includeSubDomains;" always;/g' /etc/nginx/sites-available/nextcloud.conf
-		# Set the nextcloud config to use redis
+		# Setup the nginx virtual host
 		{
 			echo 'upstream php-handler {';
 			echo '  server unix:/run/php-fpm/php-fpm.sock;';
@@ -648,7 +648,7 @@ if [ "$setup_nextcloud" != "n" ]; then
 		} > /etc/nginx/sites-available/nextcloud."$user_domain"
 		# Actually activate the nextcloud virtual host
 		ln -s /etc/nginx/sites-available/nextcloud."$user_domain" /etc/nginx/sites-enabled/nextcloud."$user_domain"
-		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
+		# Reload the nginx service to make nextcloud reachable under the "nextcloud" subdomain
 		systemctl reload nginx
 	fi
 	# Enable and start systemd timers as a replacement for ajax or cron
