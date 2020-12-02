@@ -363,7 +363,7 @@ if [ "$setup_mariadb" != "n" ]; then
 	# Enable the pdo_mysql extension for php if php has been installed
 	if [ "$setup_php" != "n" ]; then
 		sed -i '/extension=pdo_mysql/s/^;//g' /etc/php/php.ini
-		sed -i '/extension=mysqli/s/^;//g' /etc/php/php.ini
+		sed -i '/;extension=mysqli/s/^;//g' /etc/php/php.ini
 	fi
 fi
 
