@@ -682,6 +682,45 @@ if [ "$setup_nextcloud" != "n" ]; then
 fi
 
 
+### Papermerge
+[ "$stfu" == "y" ] && setup_nextcloud="y" || read -p "Install and setup Nextcloud? [Y,n]: " setup_nextcloud
+if [ "$setup_nextcloud" != "n" ]; then
+	# Install the gotify server
+	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm papermerge'
+	# Enable and start papermerge
+	systemctl start papermerge-gunicorn papermerge-worker
+	# Create the papermerge admin user
+	echo "Create the papermerge admin user:"
+	runuser -u papermerge -- sh -c 'papermerge-manage createsuperuser'
+	# Setup the nginx virtual host
+	if [ "$setup_nginx" != "n" ]; then
+		{
+			echo 'server {'
+			echo '    server_name localhost;'
+			echo '    listen 80;'
+			echo '    listen [::]:80;'
+			echo
+			echo '    location /static/ {'
+			echo '        alias /var/lib/papermerge/static/;'
+			echo '    }'
+			echo
+			echo '    location /media/ {'
+			echo '        alias /var/lib/papermerge/media/;'
+			echo '    }'
+			echo
+			echo '    location / {'
+			echo '        proxy_pass http://127.0.0.1:9001;'
+			echo '    }'
+			echo '}'
+		} > /etc/nginx/sites-available/papermerge."$user_domain"
+		# Actually activate the papermerge virtual host
+		ln -s /etc/nginx/sites-available/papermerge."$user_domain" /etc/nginx/sites-enabled/papermerge."$user_domain"
+		# Reload the nginx service to make papermerge reachable under the "papermerge" subdomain
+		systemctl reload nginx
+	fi
+fi
+
+
 ### Finalize
 
 ### MariaDB (part 2)
