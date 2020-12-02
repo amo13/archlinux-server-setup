@@ -651,6 +651,32 @@ if [ "$setup_nextcloud" != "n" ]; then
 		# Reload the nginx service to make gotify reachable under the "gotify" subdomain
 		systemctl reload nginx
 	fi
+	# Setup a fail2ban filter and a jail for nextcloud
+	if [ "$setup_fail2ban" != "n" ]; then
+		# Create filter
+		{
+			echo '[Definition]';
+			echo '_groupsre = (?:(?:,?\s*"\w+":(?:"[^"]+"|\w+))*)';
+			echo 'failregex = ^\{%(_groupsre)s,?\s*"remoteAddr":"<HOST>"%(_groupsre)s,?\s*"message":"Login failed:';
+			echo '            ^\{%(_groupsre)s,?\s*"remoteAddr":"<HOST>"%(_groupsre)s,?\s*"message":"Trusted domain error.';
+			echo 'datepattern = ,?\s*"time"\s*:\s*"%%Y-%%m-%%d[T ]%%H:%%M:%%S(%%z)?';
+		} > /etc/fail2ban/filter.d/nextcloud.conf
+		# Create jail
+		{
+			echo '[nextcloud]';
+			echo 'backend = auto';
+			echo 'enabled = true';
+			echo 'port = 80,443';
+			echo 'protocol = tcp';
+			echo 'filter = nextcloud';
+			echo 'maxretry = 5';
+			echo 'bantime = 3600';
+			echo 'findtime = 43200';
+			echo 'logpath = /usr/share/webapps/nextcloud/data/nextcloud.log';
+		} > /etc/fail2ban/jail.d/nextcloud.local
+		# Reload fail2ban
+		systemctl reload fail2ban
+	fi
 fi
 
 
