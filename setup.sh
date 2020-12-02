@@ -683,8 +683,8 @@ fi
 
 
 ### Papermerge
-[ "$stfu" == "y" ] && setup_nextcloud="y" || read -p "Install and setup Nextcloud? [Y,n]: " setup_nextcloud
-if [ "$setup_nextcloud" != "n" ]; then
+[ "$stfu" == "y" ] && setup_nextcloud="y" || read -p "Install and setup Papermerge? [Y,n]: " setup_papermerge
+if [ "$setup_papermerge" != "n" ]; then
 	# Install the gotify server
 	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm papermerge'
 	# Enable and start papermerge
