@@ -130,5 +130,5 @@ backup_rootfs
 
 backup_storage
 
-echo "Done."
+echo "Backup of root fs and storage done."
 echo "Fuck the police."
