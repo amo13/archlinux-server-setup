@@ -83,12 +83,12 @@ backup_rootfs() {
 	# Keep only the latest $keep_local snapshots locally
 	for snap in $(find $root_snaps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -nr | tail -n +$((keep_local+1))); do
 		echo "Delete local snapshot $snap"
-		btrfs subvolume delete "$snap"
+		btrfs subvolume delete "$root_snaps/$snap"
 	done
 	# Keep only the latest $keep_remote snapshots on destination
 	for snap in $(find $destination/@rootfs -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -nr | tail -n +$((keep_remote+1))); do
 		echo "Delete remote snapshot $snap"
-		btrfs subvolume delete "$snap"
+		btrfs subvolume delete "$destination/@rootfs/$snap"
 	done
 }
 
