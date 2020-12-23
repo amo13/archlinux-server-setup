@@ -147,7 +147,7 @@ sed '/%wheel ALL=(ALL) NOPASSWD: ALL/s/^# //g' /etc/sudoers | EDITOR='tee' visud
 
 
 ### yay AUR helper
-runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git 
+runuser -u "$default_user" -- git clone https://aur.archlinux.org/yay.git
 runuser -u "$default_user" -- sh -c 'cd yay && makepkg -rsi --noconfirm'
 
 
