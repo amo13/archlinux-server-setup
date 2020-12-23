@@ -115,9 +115,11 @@ backup_storage() {
 		# Rename backups to prepare for the next incremental backup
 		# On the local side
 		btrfs subvolume delete $storage_snaps/"$subvol"
+		echo "Rename $storage_snaps/$subvol-new to $storage_snaps/$subvol"
 		mv $storage_snaps/"$subvol"-new $storage_snaps/"$subvol"
 		# On the remote side
 		btrfs subvolume delete $destination/"$subvol"
+		echo "Rename $destination/$subvol-new to $destination/$subvol"
 		mv $destination/"$subvol"-new $destination/"$subvol"
 	done
 }
