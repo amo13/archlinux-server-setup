@@ -101,7 +101,6 @@ backup_storage() {
 		# Extract the (base)name of the subvolume from subvol_path
 		subvol=$(basename "$subvol_path")
 		# Create a snapshot of the subvolume
-		echo "Creating BTRFS snapshot of $subvol..."
 		btrfs subvolume snapshot -r $storage/"$subvol" $storage_snaps/"$subvol"-new
 		sync
 		# Initially or incrementally send the snapshot to the backup destination
