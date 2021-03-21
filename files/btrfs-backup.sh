@@ -48,7 +48,7 @@ checks() {
 # Datestamp for the backup
 today="$(date +"%Y-%m-%d")"
 
-# Backup the root fs to $storage
+# Backup the root fs
 backup_rootfs() {
 	# Make sure the @rootfs subvolume exists in $destination
 	[ -d $destination/@rootfs ] || btrfs subvolume create $destination/@rootfs
@@ -98,6 +98,10 @@ backup_storage() {
 	[ -d $storage_snaps ] || btrfs subvolume create $storage_snaps
 	# Loop through the subvolumes found under the storage path
 	for subvol_path in "$storage"/*; do
+		# Exclude @subvol subvolume
+		if [[ "$subvol_path" == "$storage/@subvol" ]]; then
+			continue
+		fi
 		# Extract the (base)name of the subvolume from subvol_path
 		subvol=$(basename "$subvol_path")
 		# Create a snapshot of the subvolume

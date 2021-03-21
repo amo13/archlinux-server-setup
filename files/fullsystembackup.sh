@@ -17,7 +17,7 @@ remote_drive_mount_point=/.backup_remote_server
 # Absolute path to the backup sparse file
 sparse_file_path=$remote_drive_mount_point/backup.luks
 # UUID of the backup sparse file
-sparse_uuid=aa3f2557-a32f-46c4-9d30-43e6a524fa52
+sparse_uuid=d31d4bd3-d7b6-47eb-9e70-0083a404e6ca
 # Mount point of the backup sparse file
 sparse_mount_point=/backup
 # How many MariaDB dumps to keep
@@ -36,16 +36,16 @@ today="$(date +"%Y-%m-%d")"
 
 backup_mariadb() {
 	# backup the database
-	if [ -f $db_dumps_path/"$today"-all_databases.sql.gz ]; then
+	if [ -f "$db_dumps_path"/"$today"-all_databases.sql.gz ]; then
 		echo "Database backup of today found. Skipping."
 	else
 		echo "Backing up MariaDB databases..."
-		mysqldump --defaults-file=$mycnf_path --default-character-set=utf8mb4 --single-transaction --flush-logs --master-data=2 --all-databases | gzip > $db_dumps_path/"$today"-all_databases.sql.gz
+		mysqldump --defaults-file=$mycnf_path --default-character-set=utf8mb4 --single-transaction --flush-logs --master-data=2 --all-databases | gzip > "$db_dumps_path"/"$today"-all_databases.sql.gz
 		# purge old binary logs taking up a lot of disk space
 		echo "purge binary logs before '$today';" | mysql
 	fi
 	# Keep only the latest $keep_db_dumps MariaDB dumps
-	for dump in $(find $db_dumps_path -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort -nr | tail -n +$((keep_db_dumps+1))); do
+	for dump in $(find "$db_dumps_path" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort -nr | tail -n +$((keep_db_dumps+1))); do
 		echo "Delete old MariaDB dump $dump"
 		rm "$dump"
 	done
@@ -69,10 +69,11 @@ echo "Performing a full system backup..."
 
 backup_mariadb
 mount_remote_drive
-./btrfs-backup.sh || btrfs_backup_failed="true"
+/path/to/btrfs-backup.sh || btrfs_backup_failed="true"
 # Health check on the remote BTRFS sparse file
 systemctl start btrfs-check@"$(systemd-escape -p $sparse_mount_point)"
-sleep 5
+sync
+sleep 1
 unmount_remote_drive
 
 if [ "$btrfs_backup_failed" = "true" ]; then
