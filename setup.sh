@@ -688,7 +688,7 @@ if [ "$setup_papermerge" != "n" ]; then
 	# Install the gotify server
 	runuser -u "$default_user" -- sh -c 'yay -S --noconfirm papermerge'
 	# Enable and start papermerge
-	systemctl start papermerge-gunicorn papermerge-worker
+	systemctl enable --now papermerge-gunicorn papermerge-worker
 	# Create the papermerge admin user
 	echo "Create the papermerge admin user:"
 	runuser -u papermerge -- sh -c 'papermerge-manage createsuperuser'
