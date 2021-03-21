@@ -41,6 +41,8 @@ backup_mariadb() {
 	else
 		echo "Backing up MariaDB databases..."
 		mysqldump --defaults-file=$mycnf_path --default-character-set=utf8mb4 --single-transaction --flush-logs --master-data=2 --all-databases | gzip > $db_dumps_path/"$today"-all_databases.sql.gz
+		# purge old binary logs taking up a lot of disk space
+		echo "purge binary logs before '$today';" | mysql
 	fi
 	# Keep only the latest $keep_db_dumps MariaDB dumps
 	for dump in $(find $db_dumps_path -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort -nr | tail -n +$((keep_db_dumps+1))); do
