@@ -84,3 +84,4 @@ fi
 
 echo "Full system backup done."
 echo "Fuck the police."
+exit 0
