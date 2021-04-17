@@ -57,8 +57,8 @@ backup_rootfs() {
 		echo "System snapshot of today found. Skipping."
 	else
 		echo "Creating BTRFS snapshot of the root fs..."
-		btrfs subvolume snapshot -r / $root_snaps/"$today"-rootfs
 		sync
+		btrfs subvolume snapshot -r / $root_snaps/"$today"-rootfs
 		# Set symlinks second_latest and latest
 		if [ -d $root_snaps/latest ]; then
 			echo "Linking $(readlink $root_snaps/latest) to $root_snaps/second_latest"
@@ -105,8 +105,8 @@ backup_storage() {
 		# Extract the (base)name of the subvolume from subvol_path
 		subvol=$(basename "$subvol_path")
 		# Create a snapshot of the subvolume
-		btrfs subvolume snapshot -r $storage/"$subvol" $storage_snaps/"$subvol"-new
 		sync
+		btrfs subvolume snapshot -r $storage/"$subvol" $storage_snaps/"$subvol"-new
 		# Initially or incrementally send the snapshot to the backup destination
 		if [[ -d $storage_snaps/$subvol && -d $destination/$subvol ]]; then
 			echo "Incrementally sending the new snapshot to the backup destination..."

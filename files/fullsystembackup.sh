@@ -71,9 +71,9 @@ echo "Performing a full system backup..."
 backup_mariadb
 mount_remote_drive
 /path/to/btrfs-backup.sh || btrfs_backup_failed="true"
+sync
 # Health check on the remote BTRFS sparse file
 systemctl start btrfs-check@"$(systemd-escape -p $sparse_mount_point)"
-sync
 sleep 1
 unmount_remote_drive
 
