@@ -53,14 +53,20 @@ backup_mariadb() {
 }
 
 mount_remote_drive() {
+	echo "Mounting the remote disk using sshfs..."
 	sshfs -oIdentityFile=$sshkeyfile $remote_path $remote_drive_mount_point
+	echo "Opening luks encryption on remote sparse file..."
 	cryptsetup open $sparse_file_path remote_backup --key-file $lukskeyfile
+	echo "Mounting the decrypted sparse file..."
 	mount UUID=$sparse_uuid $sparse_mount_point
 }
 
 unmount_remote_drive() {
+	echo "Unmounting the sparse file..."
 	umount $sparse_mount_point
+	echo "Closing luks encryption on remote sparse file..."
 	cryptsetup close remote_backup
+	echo "Unmounting the remote disk..."
 	fusermount3 -u $remote_drive_mount_point
 }
 
